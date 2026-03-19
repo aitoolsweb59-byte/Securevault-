@@ -160,9 +160,9 @@ async function uploadVideo() {
 
     // ── STEP 3: Direct upload to Cloudinary ───────────────
     // We use XMLHttpRequest (not fetch) so we can track progress
-    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${sigData.cloudName}/video/upload`;
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${sigData.cloudName}/auto/upload`;
     const formData = new FormData();
-    formData.append('file',       videoData);
+        formData.append('file',      videoData);
     formData.append('api_key',    sigData.apiKey);
     formData.append('timestamp',  sigData.timestamp);
     formData.append('signature',  sigData.signature);
@@ -184,7 +184,15 @@ async function uploadVideo() {
 
       xhr.onload = () => {
         if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-        else reject(new Error('Cloudinary upload failed'));
+        else {
+          // Parse Cloudinary's error message so we can show it
+          try {
+            const err = JSON.parse(xhr.responseText);
+            reject(new Error('Cloudinary: ' + (err.error?.message || xhr.responseText)));
+          } catch {
+            reject(new Error('Cloudinary HTTP ' + xhr.status + ': ' + xhr.responseText));
+          }
+        }
       };
       xhr.onerror = () => reject(new Error('Network error during upload'));
 
@@ -321,3 +329,4 @@ function setProgress(pct, label) {
 
 // ── Init ──────────────────────────────────────────────────────
 setSource('file'); // default to file upload mode
+  
