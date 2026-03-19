@@ -65,15 +65,16 @@ async function initDB() {
 // ════════════════════════════════════════════════════════════
 app.get('/api/sign-upload', (req, res) => {
   const timestamp = Math.round(new Date().getTime() / 1000);
-  const folder = 'securevault';
+  const folder = "securevault";
+  const upload_preset = "Securevaultpreset";
 
   // Cloudinary signs these parameters with our secret key
   const signature = cloudinary.utils.api_sign_request(
-    { timestamp, folder },
+    { timestamp, folder, upload_preset },
     process.env.CLOUDINARY_API_SECRET
   );
 
-  res.json({
+  res.json({ upload_preset,
     timestamp,
     signature,
     folder,
@@ -108,7 +109,7 @@ app.post('/api/videos', async (req, res) => {
     [id, cloudinary_url, cloudinary_public_id, passcode_hash]
   );
 
-  res.json({ success: true, id });
+  res.json({ upload_preset, success: true, id });
 });
 
 // ════════════════════════════════════════════════════════════
@@ -131,7 +132,7 @@ app.post('/api/videos/:id/retrieve', async (req, res) => {
     return res.status(401).json({ error: 'Incorrect passcode' });
   }
 
-  res.json({ success: true, url: video.cloudinary_url });
+  res.json({ upload_preset, success: true, url: video.cloudinary_url });
 });
 
 // ════════════════════════════════════════════════════════════
@@ -162,7 +163,7 @@ app.delete('/api/videos/:id', async (req, res) => {
   // Delete from our database
   await pool.query('DELETE FROM videos WHERE id = $1', [id]);
 
-  res.json({ success: true, message: 'Video permanently deleted' });
+  res.json({ upload_preset, success: true, message: 'Video permanently deleted' });
 });
 
 // ── Catch-all: serve frontend for any unknown route ─────────
