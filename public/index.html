@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureVault</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:      #080a0f;
+      --surface: #0e1118;
+      --border:  #1e2433;
+      --accent:  #5b8cff;
+      --accent2: #a78bfa;
+      --danger:  #ff4d6d;
+      --text:    #e2e8f0;
+      --muted:   #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(91,140,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(91,140,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glowing orb top-left */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px; left: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(91,140,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .content { position: relative; z-index: 1; }
+
+    h1, h2, h3 { font-family: 'Syne', sans-serif; }
+
+    /* Glass card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      transition: border-color 0.3s;
+    }
+    .card:hover { border-color: rgba(91,140,255,0.3); }
+
+    /* Inputs */
+    input[type="text"], input[type="password"], input[type="file"] {
+      width: 100%;
+      background: #0a0d14;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91,140,255,0.12);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 28px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: opacity 0.2s, transform 0.15s;
+      width: 100%;
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      border-radius: 10px;
+      padding: 11px 28px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      width: 100%;
+    }
+    .btn-danger:hover { background: rgba(255,77,109,0.1); transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 28px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      width: 100%;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: #3a4460; }
+
+    /* Tab bar */
+    .tab {
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .tab.active {
+      background: rgba(91,140,255,0.12);
+      color: var(--accent);
+    }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+
+    /* Video preview */
+    video {
+      width: 100%;
+      border-radius: 12px;
+      background: #000;
+      max-height: 340px;
+      object-fit: contain;
+    }
+
+    /* Webcam controls */
+    .rec-dot {
+      width: 10px; height: 10px;
+      background: var(--danger);
+      border-radius: 50%;
+      animation: pulse 1.2s infinite;
+      display: inline-block;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* Alert */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #4ade80; }
+    .alert-error   { background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.25); color: #ff4d6d; }
+    .alert-info    { background: rgba(91,140,255,0.1); border: 1px solid rgba(91,140,255,0.25); color: #7ba4ff; }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .badge-blue { background: rgba(91,140,255,0.15); color: var(--accent); border: 1px solid rgba(91,140,255,0.2); }
+    .badge-green { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+
+    /* Section fade-in */
+    .panel { animation: fadeUp 0.35s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Copy ID box */
+    .id-box {
+      background: #0a0d14;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--accent);
+      word-break: break-all;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      position: relative;
+    }
+    .id-box:hover { border-color: var(--accent); }
+
+    /* Label */
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 0;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  </style>
+</head>
+<body>
+<div class="content min-h-screen flex flex-col">
+
+  <!-- ── Header ─────────────────────────────────────────────── -->
+  <header class="py-6 px-6 flex items-center justify-between border-b" style="border-color: var(--border);">
+    <div class="flex items-center gap-3">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;" class="flex items-center justify-center">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div>
+        <h1 style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">SecureVault</h1>
+        <p style="font-size:11px;color:var(--muted);margin-top:1px;">Passcode-protected video storage</p>
+      </div>
+    </div>
+    <span class="badge badge-blue">BETA</span>
+  </header>
+
+  <!-- ── Main ───────────────────────────────────────────────── -->
+  <main class="flex-1 flex items-start justify-center px-4 py-10">
+    <div style="width:100%;max-width:520px;">
+
+      <!-- Tab Bar -->
+      <div class="flex gap-2 mb-6 p-1 card" style="display:inline-flex;width:100%;">
+        <button class="tab active flex-1" id="tab-upload" onclick="switchTab('upload')">Upload / Record</button>
+        <button class="tab flex-1" id="tab-retrieve" onclick="switchTab('retrieve')">Retrieve Video</button>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+           PANEL: UPLOAD
+      ══════════════════════════════════════════════════════ -->
+      <div id="panel-upload" class="panel card p-6 flex flex-col gap-5">
+
+        <div>
+          <h2 style="font-size:20px;font-weight:800;letter-spacing:-0.02em;">Store a Video</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px;">Record from webcam or upload a file. Set a passcode to lock it.</p>
+        </div>
+
+        <!-- Source toggle -->
+        <div class="flex gap-2">
+          <button class="btn-ghost flex-1" id="src-webcam" onclick="setSource('webcam')">🎥 Webcam</button>
+          <button class="btn-ghost flex-1" id="src-file" onclick="setSource('file')">📁 Upload File</button>
+        </div>
+
+        <!-- Webcam section -->
+        <div id="webcam-section" class="flex flex-col gap-3" style="display:none!important;">
+          <video id="webcam-preview" autoplay muted playsinline style="background:#000;"></video>
+          <div class="flex gap-2">
+            <button class="btn-primary flex-1" id="btn-start-rec" onclick="startRecording()">● Start Recording</button>
+            <button class="btn-ghost flex-1" id="btn-stop-rec" onclick="stopRecording()" disabled style="opacity:0.4;cursor:not-allowed;">■ Stop</button>
+          </div>
+          <div id="rec-status" class="flex items-center gap-2" style="display:none!important;">
+            <span class="rec-dot"></span>
+            <span style="font-size:12px;color:var(--danger);">Recording...</span>
+          </div>
+        </div>
+
+        <!-- File upload section -->
+        <div id="file-section" class="flex flex-col gap-3">
+          <label>Select Video File</label>
+          <input type="file" id="video-file" accept="video/*" onchange="onFileSelected()" />
+        </div>
+
+        <!-- Recorded preview -->
+        <div id="recorded-preview-wrap" style="display:none;">
+          <label>Preview</label>
+          <video id="recorded-preview" controls></video>
+        </div>
+
+        <!-- Passcode -->
+        <div>
+          <label>Set Passcode</label>
+          <input type="password" id="upload-passcode" placeholder="Minimum 4 characters" />
+        </div>
+        <div>
+          <label>Confirm Passcode</label>
+          <input type="password" id="upload-passcode2" placeholder="Repeat passcode" />
+        </div>
+
+        <!-- Upload progress -->
+        <div id="progress-wrap" style="display:none;" class="flex flex-col gap-2">
+          <div class="flex justify-between" style="font-size:12px;color:var(--muted);">
+            <span id="progress-label">Uploading to cloud...</span>
+            <span id="progress-pct">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        </div>
+
+        <!-- Alert -->
+        <div class="alert" id="upload-alert"></div>
+
+        <!-- Success state -->
+        <div id="upload-success" class="card p-4 flex flex-col gap-3" style="display:none;border-color:rgba(91,140,255,0.3);">
+          <div class="flex items-center gap-2">
+            <span class="badge badge-green">✓ Saved</span>
+            <span style="font-size:13px;color:var(--muted);">Video stored securely</span>
+          </div>
+          <div>
+            <label>Your Video ID — click to copy</label>
+            <div class="id-box" id="video-id-display" onclick="copyID()"></div>
+            <p style="font-size:11px;color:var(--muted);margin-top:6px;">⚠️ Save this ID. Without it, you cannot retrieve your video.</p>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-upload" onclick="uploadVideo()">Upload &amp; Secure</button>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+           PANEL: RETRIEVE
+      ══════════════════════════════════════════════════════ -->
+      <div id="panel-retrieve" class="panel card p-6 flex flex-col gap-5" style="display:none;">
+
+        <div>
+          <h2 style="font-size:20px;font-weight:800;letter-spacing:-0.02em;">Retrieve Your Video</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px;">Enter your Video ID and passcode to access or delete.</p>
+        </div>
+
+        <div>
+          <label>Video ID</label>
+          <input type="text" id="retrieve-id" placeholder="Paste your video ID here" />
+        </div>
+        <div>
+          <label>Passcode</label>
+          <input type="password" id="retrieve-passcode" placeholder="Enter your passcode" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <button class="btn-primary" onclick="retrieveVideo()">🔓 Access Video</button>
+          <button class="btn-danger" onclick="deleteVideo()">🗑 Permanently Delete</button>
+        </div>
+
+        <div class="alert" id="retrieve-alert"></div>
+
+        <!-- Video player result -->
+        <div id="retrieve-result" style="display:none;" class="flex flex-col gap-3">
+          <div class="divider"></div>
+          <span class="badge badge-green" style="width:fit-content;">✓ Passcode Verified</span>
+          <video id="retrieved-video" controls></video>
+        </div>
+
+      </div>
+      <!-- end panels -->
+
+    </div>
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer class="py-4 text-center" style="font-size:11px;color:var(--muted);border-top:1px solid var(--border);">
+    SecureVault · Encrypted at rest · Powered by Cloudinary
+  </footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+  </html>
+  
