@@ -166,7 +166,8 @@ async function uploadVideo() {
     formData.append('api_key',    sigData.apiKey);
     formData.append('timestamp',  sigData.timestamp);
     formData.append('signature',  sigData.signature);
-    formData.append('folder',     sigData.folder);
+    formData.append('folder',        sigData.folder);
+    formData.append('upload_preset', sigData.upload_preset);
 
     showProgress(true);
     btn.textContent = 'Uploading...';
